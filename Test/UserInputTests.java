@@ -1,3 +1,4 @@
+import Display.BoardView;
 import Solver.Solver;
 import Solver.SolutionMethod;
 import SudokuGame.Board;
@@ -19,22 +20,22 @@ public class UserInputTests {
 //        Random r2 = new Random(123);
 //        for(int i = 0; i < 100; i++)
 //            System.out.print((byte)(r2.nextInt(9) + 1));
-        Board defaultBoard = BoardTests.getDefaultBoard();
-        System.out.println(defaultBoard);
-        System.out.println(defaultBoard.tileIsValid(new BoardCoord(0,0), (byte) 8));
-        System.out.println(defaultBoard);
         setAndGetFromTerminalTest();
     }
     public static void setAndGetFromTerminalTest(){
         Board b = new Board();
         Scanner tsm = new Scanner(System.in);
-        String index = "s i j v (set row col value), g i j (get row col) \n" +
-                "q (quit) pb (print board), c i j (clear row col)\n" +
-                "gn i j (getnotes row col), tn i j v (setnote row col val)\n" +
-                "cv i j (checkValidity row col), cb (checkBoardValidity)\n" +
-                "gb ?s (generateBoard seed(optional) gempt (get empty tiles)\n" +
-                "db (defaultBoard)\n" +
-                "sol m (solve method[ gc (guesAndCheck)]";
+        BoardView view = new BoardView(b);
+        startUpdatingWindow(view);
+        String index = """
+                s i j v (set row col value), g i j (get row col)\s
+                q (quit) pb (print board), c i j (clear row col)
+                gn i j (getnotes row col), tn i j v (setnote row col val)
+                cv i j (checkValidity row col), cb (checkBoardValidity)
+                gb ?s (generateBoard seed(optional) gempt (get empty tiles)
+                db (defaultBoard)
+                sol m (solve method[ gc (guesAndCheck)]
+                tw (toggle window)""";
         System.out.println(index);
         label:
         while(true){
@@ -42,107 +43,112 @@ public class UserInputTests {
             String[] terms = command.split(" ");
 
             switch (terms[0]) {
-                case "gn": {
-                    if(terms.length < 3){
+                case "gn" -> {
+                    if (terms.length < 3) {
                         break;
                     }
-                    BoardCoord bc = new BoardCoord(Integer.parseInt(terms[1]), Integer.parseInt(terms[2]));
+                    BoardCoord bc = new BoardCoord(Integer.parseInt(terms[1]) + 1, Integer.parseInt(terms[2]) + 1);
                     System.out.println(b.getTile(bc).getNotesList());
-                    break;
                 }
-                case "tn":{
-                    if(terms.length < 4){
+                case "tn" -> {
+                    if (terms.length < 4) {
                         break;
                     }
-                    BoardCoord bc = new BoardCoord(Integer.parseInt(terms[1]), Integer.parseInt(terms[2]));
+                    BoardCoord bc = new BoardCoord(Integer.parseInt(terms[1]) + 1, Integer.parseInt(terms[2]) + 1);
                     int value = Integer.parseInt(terms[3]);
-                    b.getTile(bc).toggleNote((byte)value);
-                    break;
+                    b.getTile(bc).toggleNote((byte) (value + 1));
                 }
-
-                case "s": {
-                    if(terms.length < 4){
+                case "s" -> {
+                    if (terms.length < 4) {
                         break;
                     }
-                    BoardCoord bc = new BoardCoord(Integer.parseInt(terms[1]), Integer.parseInt(terms[2]));
+                    BoardCoord bc = new BoardCoord(Integer.parseInt(terms[1]) + 1, Integer.parseInt(terms[2]) + 1);
                     int value = Integer.parseInt(terms[3]);
                     b.setTile(bc, value);
-                    break;
                 }
-                case "g": {
-                    if(terms.length < 3){
+                case "g" -> {
+                    if (terms.length < 3) {
                         break;
                     }
-                    BoardCoord bc = new BoardCoord(Integer.parseInt(terms[1]), Integer.parseInt(terms[2]));
+                    BoardCoord bc = new BoardCoord(Integer.parseInt(terms[1]) + 1, Integer.parseInt(terms[2]) + 1);
                     System.out.println(b.getTile(bc));
-                    break;
                 }
-                case "q": {
+                case "q" -> {
                     break label;
                 }
-                case "pb": {
+                case "pb" -> {
                     System.out.println(b);
-                    break;
                 }
-                case "c": {
-                    if(terms.length < 3){
+                case "c" -> {
+                    if (terms.length < 3) {
                         break;
                     }
-                    BoardCoord bc = new BoardCoord(Integer.parseInt(terms[1]), Integer.parseInt(terms[2]));
+                    BoardCoord bc = new BoardCoord(Integer.parseInt(terms[1]) + 1, Integer.parseInt(terms[2])+1);
                     b.clearCell((bc));
-                    break;
                 }
-                case "help": {
+                case "help" -> {
                     System.out.println(index);
-                    break;
                 }
-                case "cv": {
-                    if(terms.length < 3){
+                case "cv" -> {
+                    if (terms.length < 3) {
                         break;
                     }
                     BoardCoord bc = new BoardCoord(Integer.parseInt(terms[1]), Integer.parseInt(terms[2]));
                     System.out.println(b.tileIsValid(bc));
-                    break;
                 }
-                case "cb": {
+                case "cb" -> {
                     System.out.println(b.isValid());
-                    break;
                 }
-                case "gb": {
-                    if(terms.length == 1){
+                case "gb" -> {
+                    if (terms.length == 1) {
                         b = GameBoard.generate();
-                    } else if (terms.length == 2){
+                    } else if (terms.length == 2) {
                         b = GameBoard.generate(Long.parseLong(terms[1]));
-                    } else if (terms.length == 3){
+                    } else if (terms.length == 3) {
                         b = GameBoard.generate(Long.parseLong(terms[1]), Integer.parseInt(terms[2]));
                     }
-                    break;
                 }
-                case "gempt": {
+                case "gempt" -> {
                     System.out.println(Arrays.toString(b.getEmptyTiles()));
-                    break;
                 }
-                case "sol": {
-                    if(terms.length < 2){
+                case "sol" -> {
+                    if (terms.length < 2) {
                         break;
-                    } else if(terms.length == 2){
+                    } else if (terms.length == 2) {
                         Solver s = new Solver();
                         boolean solved = false;
                         SolutionMethod sm;
-                        switch(terms[1]){
+                        switch (terms[1]) {
                             case "gc" -> sm = SolutionMethod.GUESS_AND_CHECK;
                             default -> sm = SolutionMethod.GUESS_AND_CHECK;
                         }
-                        solved = s.solve(b, sm,1234);
-                        System.out.println(solved? "Solved successfully" : "Solution failed");
+                        solved = s.solve(b, sm, 1234);
+                        System.out.println(solved ? "Solved successfully" : "Solution failed");
                     }
-                    break;
                 }
-                case "db":{
-                    b = BoardTests.getDefaultBoard();
+                case "db" -> {
+                    BoardTests.getDefaultBoard(b);
                 }
-
+                case "tw" -> {
+                    view.toggleVisible();
+                }
             }
         }
+
+
+    }
+    public static void startUpdatingWindow(BoardView b) {
+        Thread t = new Thread(() -> {
+            int updatesPerSecond = 30;
+            double interval = 1000.0 / updatesPerSecond;
+            long now = System.currentTimeMillis();
+            while (true) {
+                if (System.currentTimeMillis() - now >= interval) {
+                    now += interval;
+                    b.repaint();
+                }
+            }
+        });
+        t.start();
     }
 }

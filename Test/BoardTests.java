@@ -1,3 +1,4 @@
+import SudokuGame.Board;
 import SudokuGame.GameBoard;
 import org.junit.Test;
 
@@ -16,8 +17,8 @@ public class BoardTests {
             {0,0,0,0,0,6,7,0,2}
     };
 
-    public static GameBoard getDefaultBoard(){
-        return GameBoard.fromBoard(DEFAULT_BOARD);
+    public static void getDefaultBoard(Board b){
+        b.setBoardTo(GameBoard.fromBoard(DEFAULT_BOARD).getValuesCopy());
     }
 
 

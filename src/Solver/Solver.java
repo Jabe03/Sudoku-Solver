@@ -58,11 +58,19 @@ public class Solver{
             if(b.tileIsValid(t.getCoordinates(), guess)){
                 b.setTile(t.getCoordinates(), guess);
                 s.addToLastDecisionLevel(t.getCoordinates(), guess);
+                pause(200);
             }
+
         }
         return true;
     }
-
+    public void pause(long millis){
+        try{
+            Thread.sleep(millis);
+        } catch (InterruptedException e){
+            //do nothing
+        }
+    }
     public Tile getRandomEmptyTile(Random r, Board b){
         Tile[] tiles = b.getEmptyTiles();
         if(tiles.length == 0){

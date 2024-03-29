@@ -11,7 +11,7 @@ class PropagationPath {
     private ArrayList<TileSolution> path;
     private int decisionLevel;
 
-    public PropagationPath(Tile[][] startingBoard, int decisionLevel){
+    public PropagationPath(/*Tile[][] startingBoard,*/ int decisionLevel){
 
         //write this now
         this.decisionLevel = decisionLevel;

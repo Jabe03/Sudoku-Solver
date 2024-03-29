@@ -22,6 +22,7 @@ public class Solution {
         ArrayList<PropagationPath> newSol = new ArrayList<PropagationPath>();
         newSol.add(solution.get(0));
         solution = newSol;
+        return null;
     }
 
     public void addDecisionLevel(){
