@@ -35,7 +35,7 @@ public class Tile {
         clearNotes();
         this.value = 0;
     }
-    public void tunOnAllNotes(){
+    public void turnOnAllNotes(){
         Arrays.fill(notes, true);
     }
     public void clearNotes(){

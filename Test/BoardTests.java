@@ -16,10 +16,40 @@ public class BoardTests {
             {0,0,0,0,0,6,7,0,2}
     };
 
+    public static final int[][] HARD_BOARD = new int[][]{
+            {6,0,0,5,2,0,1,0,7},
+            {0,8,0,9,0,0,0,0,0},
+            {0,0,0,0,0,0,0,5,0},
+            {1,0,0,0,7,0,2,0,4},
+            {0,0,6,0,0,1,0,0,0},
+            {0,0,0,0,0,0,3,0,0},
+            {4,0,0,0,0,0,0,3,0},
+            {0,0,9,2,0,0,4,0,5},
+            {0,0,0,0,5,0,0,6,0}
+    };
+
+    public static final int[][] MEDIUM_BOARD = new int[][]{
+            {0,8,5,7,2,0,1,0,0},
+            {7,0,0,4,0,5,0,0,6},
+            {0,0,0,0,0,3,7,0,0},
+            {4,5,9,1,6,7,0,0,0},
+            {0,6,0,0,0,0,0,1,7},
+            {0,7,0,0,0,0,0,0,0},
+            {6,0,8,0,0,0,5,0,0},
+            {0,0,0,0,5,9,8,0,4},
+            {5,9,0,3,0,8,0,0,0},
+
+    };
+
     public static GameBoard getDefaultBoard(){
         return GameBoard.fromBoard(DEFAULT_BOARD);
     }
-
+    public static GameBoard getHardBoard(){
+        return GameBoard.fromBoard(HARD_BOARD);
+    }
+    public static GameBoard getMediumBoard(){
+        return GameBoard.fromBoard(MEDIUM_BOARD);
+    }
 
 
 }

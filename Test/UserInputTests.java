@@ -33,7 +33,8 @@ public class UserInputTests {
                 "gn i j (getnotes row col), tn i j v (setnote row col val)\n" +
                 "cv i j (checkValidity row col), cb (checkBoardValidity)\n" +
                 "gb ?s (generateBoard seed(optional) gempt (get empty tiles)\n" +
-                "db (defaultBoard)\n" +
+                "san (set all notes)\n" +
+                "db (defaultBoard) mb (mediumBoard) hb (hardBoard)\n" +
                 "sol m (solve method[ gc (guesAndCheck)]";
         System.out.println(index);
         label:
@@ -59,6 +60,10 @@ public class UserInputTests {
                     b.getTile(bc).toggleNote((byte)value);
                     break;
                 }
+                case "san":{
+                    b.turnAllTileNotesOn();
+
+                }
 
                 case "s": {
                     if(terms.length < 4){
@@ -78,7 +83,7 @@ public class UserInputTests {
                     break;
                 }
                 case "q": {
-                    break label;
+                    System.exit(0);
                 }
                 case "pb": {
                     System.out.println(b);
@@ -133,13 +138,26 @@ public class UserInputTests {
                             case "gc" -> sm = SolutionMethod.GUESS_AND_CHECK;
                             default -> sm = SolutionMethod.GUESS_AND_CHECK;
                         }
+                        long start = System.currentTimeMillis();
                         solved = s.solve(b, sm,1234);
-                        System.out.println(solved? "Solved successfully" : "Solution failed");
+                        long elapsed = System.currentTimeMillis() - start;
+                        System.out.printf("%s with solution: %s (%dms)%n",
+                                (solved? "Solved successfully" : "Solution failed"),  s.getSolution(), elapsed);
+
                     }
                     break;
                 }
                 case "db":{
                     b = BoardTests.getDefaultBoard();
+                    break;
+                }
+                case "mb":{
+                    b = BoardTests.getMediumBoard();
+                    break;
+                }
+                case "hb":{
+                    b = BoardTests.getHardBoard();
+                    break;
                 }
 
             }

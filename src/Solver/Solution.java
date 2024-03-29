@@ -1,5 +1,6 @@
 package Solver;
 
+import SudokuGame.Board;
 import SudokuGame.BoardCoord;
 import SudokuGame.Tile;
 
@@ -9,26 +10,57 @@ public class Solution {
 
     ArrayList<PropagationPath> solution;
 
-    public Solution(){
+    public Solution(Board b){
         solution = new ArrayList<PropagationPath>();
-        solution.add(new PropagationPath(0));
+        solution.add(new PropagationPath(b.getValuesCopy(),0));
     }
 
     public Tile[][] revertToLowestDecisionLevel(){
-        if(solution.size() <2){
+        return revertToDecisionLevel(0);
+    }
+    public Tile[][] revertHighestDecisionLevel(){
+        return revertToDecisionLevel(solution.size() -2);
+    }
+
+    public Tile[][] revertToDecisionLevel(int level){
+        if(solution.size() <= 1){
             System.out.println("tried to lower decision level below 0");
         }
-
-        ArrayList<PropagationPath> newSol = new ArrayList<PropagationPath>();
-        newSol.add(solution.get(0));
-        solution = newSol;
+        Tile[][]  revertTo =  solution.get(level+1).getStartingBoard();
+        solution.subList(level + 1, solution.size()).clear();
+        return revertTo;
     }
 
-    public void addDecisionLevel(){
-        solution.add(new PropagationPath(solution.size()));
+    public void addDecisionLevel(Board start, TileSolution guess){
+        solution.add(new PropagationPath(start.getValuesCopy(), solution.size(), guess));
+        start.setTile(guess);
     }
     public void addToLastDecisionLevel(BoardCoord bc, byte val){
-        solution.get(solution.size()-1).add(bc,val);
+       addToLastDecisionLevel(new TileSolution(bc, val));
+    }
+    public void addToLastDecisionLevel(TileSolution s){
+        solution.get(solution.size()-1).add(s);
+    }
+
+    public TileSolution getFirstDecision(){
+        if(solution.size() == 1){
+            return null;
+        }
+        return solution.get(1).initialDecision;
+
+    }
+
+    public TileSolution getLastDecision(){
+        if(solution.size() == 1){
+            return null;
+        }
+        return solution.get(solution.size()-1).initialDecision;
+    }
+    public int getCurrentDecisionLevel(){
+        return solution.size();
+    }
+    public String toString(){
+        return solution.toString();
     }
 
 

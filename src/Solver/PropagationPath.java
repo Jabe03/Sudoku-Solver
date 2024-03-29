@@ -7,20 +7,31 @@ import java.util.ArrayList;
 
 class PropagationPath {
 
-    private Tile[][] startingBoard;
+    private final Tile[][] startingBoard;
+
+    TileSolution initialDecision;
     private ArrayList<TileSolution> path;
     private int decisionLevel;
 
-    public PropagationPath(Tile[][] startingBoard, int decisionLevel){
-
-        //write this now
+    public PropagationPath(Tile[][] startingBoard, int decisionLevel, TileSolution initialDecision){
+        this.startingBoard = startingBoard;
         this.decisionLevel = decisionLevel;
         this.path = new ArrayList<TileSolution>();
-
+        this.initialDecision = initialDecision;
+    }
+    public PropagationPath(Tile[][] startingBoard,int decisionLevel){
+        this(startingBoard, decisionLevel, null);
     }
 
+
+    public Tile[][] getStartingBoard(){
+        return startingBoard;
+    }
     public void add(BoardCoord bc, byte val){
-        path.add(new TileSolution(bc, val, decisionLevel));
+        add(new TileSolution(bc, val));
+    }
+    public void add(TileSolution s){
+        path.add(s);
     }
     public int getDecisionLevel() {
         return decisionLevel;
@@ -28,6 +39,10 @@ class PropagationPath {
 
     public void setDecisionLevel(int decisionLevel) {
         this.decisionLevel = decisionLevel;
+    }
+
+    public String toString(){
+        return String.format("<DL:%d, inital = [%s], path = %s>", decisionLevel, initialDecision, path);
     }
 
 

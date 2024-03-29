@@ -5,12 +5,11 @@ import SudokuGame.BoardCoord;
 public class TileSolution {
     private final BoardCoord bc;
     private final byte val;
-    private int decisionLevel;
 
-    public TileSolution(BoardCoord bc, byte val, int decisionLevel){
+    public TileSolution(BoardCoord bc, byte val){
         this.bc = bc;
         this.val = val;
-        this.decisionLevel = decisionLevel;
+
     }
 
 
@@ -23,12 +22,10 @@ public class TileSolution {
         return val;
     }
 
-    public int getDecisionLevel() {
-        return decisionLevel;
-    }
 
-    public void setDecisionLevel(int decisionLevel) {
-        this.decisionLevel = decisionLevel;
+
+    public String toString(){
+        return String.format("TSol(%d,%d)=%d", bc.row+1,bc.col+1, val);
     }
 }
 

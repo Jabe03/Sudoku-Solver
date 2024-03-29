@@ -1,5 +1,7 @@
 package SudokuGame;
 
+import Solver.TileSolution;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -51,9 +53,11 @@ public class Board {
 
     public void setTile(BoardCoord bc, int newVal){
             values[bc.row][bc.col].setValue(b(newVal));
-            for(Tile t : getAllRelevantTiles(bc)){
-                t.removeNote((byte)newVal);
-            }
+            updateNotesRelevantTo(bc);
+    }
+
+    public void setTile(TileSolution s){
+        setTile(s.getBc(), s.getVal());
     }
 
     public void clearCell(BoardCoord bc){
@@ -74,7 +78,16 @@ public class Board {
         Tile[] result = new Tile[tiles.size()];
         return tiles.toArray(result);
     }
-
+    public void makeAllCurrentValuesIntrinsic(){
+        for(int i  = 0; i < values.length; i++){
+            for(int j = 0; j < values[i].length; j++){
+                Tile t = values[i][j];
+                if(t.hasValue()){
+                    t.makeIntrinsic();
+                }
+            }
+        }
+    }
     public Tile[][] getValuesCopy(){
         Tile[][] newTiles = new Tile[values.length][values[0].length];
         for(int i = 0; i < values.length; i++){
@@ -181,19 +194,36 @@ public class Board {
             for(int j = 0; j < values[i].length; j++){
                 Tile t = values[i][j];
                 if(!t.hasValue()){
-                    t.tunOnAllNotes();
+                    t.turnOnAllNotes();
                 }
             }
+        }
+        correctAllNotes();
+    }
+
+    public void correctAllNotes(){
+        for(int i  = 0; i < values.length; i++) {
+            for (int j = 0; j < values[i].length; j++) {
+                if(values[i][j].hasValue()){
+                    updateNotesRelevantTo(new BoardCoord(i,j));
+                }
+            }
+        }
+
+    }
+
+    public void updateNotesRelevantTo(BoardCoord bc){
+        byte val = getTile(bc).getValue();
+        for(Tile t : getAllRelevantTiles(bc)){
+            t.removeNote((byte)val);
         }
     }
 
     public boolean tileIsValid(BoardCoord bc){
         Tile t = getTile(bc);
-        byte savedVal = t.getValue();
         if(t.hasValue()){
-            boolean result = (!hasColumnConflict(bc)) && (!hasRowConflict(bc)) &&(!hasPartitionConflict(bc));
-            t.setValue(savedVal);
-            return result;
+
+            return (!hasColumnConflict(bc)) && (!hasRowConflict(bc)) &&(!hasPartitionConflict(bc));
         }
         return true; //if tile is blank then no possible conflicts
     }
@@ -295,6 +325,18 @@ public class Board {
                 b.append("-".repeat(numrepeats)).append("\n".repeat(VERTICAL_SPACING + 1));
             }
 
+        }
+        return b.toString();
+    }
+
+    public String toShortString(){
+        StringBuilder b = new StringBuilder();
+
+        for(Tile[] row: values){
+            for(Tile t: row){
+                b.append(t.getValue()).append(" ");
+            }
+            b.append("\n");
         }
         return b.toString();
     }

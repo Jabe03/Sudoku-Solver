@@ -73,7 +73,8 @@ public class BoardCoord{
 
     @Override
     public String toString(){
-        return "{SudokuGame.BoardCoord: row=" + row + ", col=" + col + ", type=" + type + "}";
+        //return "{BC: row=" + row + ", col=" + col + ", type=" + type + "}";
+        return String.format("{BC:r=%d,c=%d}", row, col);
     }
 
 }

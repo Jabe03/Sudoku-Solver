@@ -26,7 +26,9 @@ public class GameBoard extends Board{
         return generate(seed, 40);
     }
     public static GameBoard fromBoard(int[][] b){
-        return new GameBoard(b);
+        GameBoard gb = new GameBoard(b);
+        gb.makeAllCurrentValuesIntrinsic();
+        return  gb;
     }
     public static GameBoard generate(long seed, int numGivens){
         GameBoard b = new GameBoard();
