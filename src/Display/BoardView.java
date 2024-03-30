@@ -95,23 +95,23 @@ public class BoardView extends JPanel {
                 if(t.hasValue()){
                     g.setFont(valueFont);
                     String value = Byte.toString(t.getValue());
-                    int centeringY = -(BOX_SIZE - g.getFontMetrics().getAscent())/2;
-                    //System.out.println(g.getFontMetrics().getHeight());
+                    int centeringY = -(BOX_SIZE - g.getFontMetrics().getAscent())/2 - 5;
                     int centeringX = (BOX_SIZE - g.getFontMetrics().stringWidth(value) )/2;
                     g.setColor(BoardColor.getRGBColor(BoardColor.getDefaultOrder()[partitionNum]));
                     g.drawString(value, PADDING + j*BOX_SIZE + centeringX, PADDING + (i+1)*BOX_SIZE + centeringY);
                 } else {
-                    //should draw notes, but for now just draw the 0
                     g.setFont(notesFont);
                     g.setColor(notesColor);
                     int noteHeight = g.getFontMetrics().getHeight();
                     //g.drawString("NOTES", PADDING + j*BOX_SIZE , PADDING + i*BOX_SIZE);
                     boolean[] notes = t.getNotes();
                     for(int k = 0; k < notes.length; k++){
+                        int centeringY = (BOX_SIZE - ((2*BOX_SIZE/3) - 5))/2;
+                        int centeringX = (BOX_SIZE - ((2*BOX_SIZE/3) + g.getFontMetrics().stringWidth("5")) )/2;
                         if(notes[k]) {
                             int xOffset = k % 3 * (BOX_SIZE / 3);
                             int yOffset = k / 3 * (BOX_SIZE / 3);
-                            g.drawString(Integer.toString(k), PADDING + j*BOX_SIZE + xOffset, PADDING + i*BOX_SIZE + yOffset + noteHeight);
+                            g.drawString(Integer.toString(k+1), PADDING + j*BOX_SIZE + xOffset + centeringX, PADDING + i*BOX_SIZE + yOffset + centeringY);
                         }
                     }
                 }
