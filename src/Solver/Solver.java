@@ -10,6 +10,8 @@ import java.util.Random;
 
 public class Solver{
     Solution s;
+    long delay;
+    public static final int SLOW_DELAY = 200;
     public static void main(String[] args){
         Board b = new Board();
         System.out.println(b);
@@ -32,11 +34,19 @@ public class Solver{
 
     }
 
+    public void setDelay(long millis){
+        this.delay = millis;
+    }
+    public void setSlow(){
+        this.delay = SLOW_DELAY;
+    }
+
 
     public boolean solve(Board b, SolutionMethod method, long seed){
         boolean solved;
         switch(method){
-            case GUESS_AND_CHECK -> solved = solveByGuessAndCheck(b, seed);
+            case GUESS_AND_CHECK -> solved = solveByGuessAndCheck(b, seed, false, true);
+            case GUESS_AND_CHECK_SMART_SELECTION -> solved = solveByGuessAndCheck(b, seed, true,  true);
             default -> {
                 System.out.println("Desired method not supported");
                 return false;
@@ -46,23 +56,35 @@ public class Solver{
         return solved;
     }
 
-    public boolean solveByGuessAndCheck(Board b, long seed){
+    private boolean revertBoardAndFail(Board b){
+        b.setBoardTo(s.getInitialBoard());
+        return false;
+    }
+    public boolean solveByGuessAndCheck(Board b, long seed, boolean smartSelection,  boolean lookForContradictionTiles){
         System.out.println("Solving via guess and check");
         s = new Solution(b);
         Random r = new Random(seed);
         b.turnAllTileNotesOn();
         solveAllWithSingletonNotes(b);
         while(!b.isSolved()) {
-
-            Tile t = getRandomEmptyTile(r, b);
-            //Tile t = getATileWithLeastNotes(r,b);
-            if (t == null) {
-                return false;
+            Tile t;
+            if(smartSelection){
+                t = getATileWithLeastNotes(r,b);
+            }else{
+                t = getRandomEmptyTile(r, b);
             }
 
+            if (t == null) {
+                return revertBoardAndFail(b);
+            }
+
+
             byte guess = chooseRandomFromNotes(r, t);
-            if (guess == 0) {
+            if (guess == 0 || hasTileWithNoNotes(b)) {
                 TileSolution ts = s.getLastDecision();
+                if(ts == null){
+                   return revertBoardAndFail(b);
+                }
                 b.setBoardTo(s.revertHighestDecisionLevel());
                 b.getTile(ts.getBc()).toggleNote(ts.getVal());
             } else {
@@ -74,14 +96,27 @@ public class Solver{
                     //System.out.print(t.getCoordinates() +  " " + guess + "was invalid, marking wrong " +
                             //b.getTile(t.getCoordinates()).getNotesList() + "->");
                     b.getTile(t.getCoordinates()).toggleNote(guess);
+                    delay();
                     //System.out.println(b.getTile(t.getCoordinates()).getNotesList());
                 }
             }
             solveAllWithSingletonNotes(b);
+            delay();
         }
         return true;
     }
 
+    public boolean hasTileWithNoNotes(Board b){
+        for(int i = 0 ; i < 9; i++){
+            for(int j = 0; j <  9; j++){
+                Tile t = b.getTile(new BoardCoord(i,j));
+                if(!t.hasValue() &&  t.getNotesList().isEmpty()){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
     public void solveAllWithSingletonNotes(Board b){
         boolean changesMade = false;
         for(int i  = 0; i < 9; i++){
@@ -93,11 +128,26 @@ public class Solver{
                     s.addToLastDecisionLevel(ts);
                     b.setTile(ts);
                     changesMade = true;
+                    delay(delay/2);
                 }
             }
         }
         if(changesMade){
             solveAllWithSingletonNotes(b);
+        }
+    }
+    public void delay(){
+        if(this.delay == 0){
+            return;
+        }
+       delay(delay);
+    }
+
+    public void delay(long millis){
+        try{
+            Thread.sleep(millis);
+        } catch (InterruptedException e){
+            //do nothing
         }
     }
 
@@ -149,8 +199,8 @@ public class Solver{
         if(smallest.size() == 0){
             return null;
         }
-        //return smallest.get(r.nextInt(smallest.size()));
-        return smallest.get(0);
+        return smallest.get(r.nextInt(smallest.size()));
+
     }
 
     public Solution getSolution(){

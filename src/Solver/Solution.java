@@ -29,6 +29,11 @@ public class Solution {
         Tile[][]  revertTo =  solution.get(level+1).getStartingBoard();
         solution.subList(level + 1, solution.size()).clear();
         return revertTo;
+
+    }
+
+    public Tile[][] getInitialBoard(){
+        return solution.get(0).getStartingBoard();
     }
 
     public void addDecisionLevel(Board start, TileSolution guess){

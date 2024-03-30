@@ -1,3 +1,4 @@
+import SudokuGame.Board;
 import SudokuGame.GameBoard;
 import org.junit.Test;
 
@@ -15,6 +16,7 @@ public class BoardTests {
             {2,0,0,8,0,0,0,0,0},
             {0,0,0,0,0,6,7,0,2}
     };
+
 
     public static final int[][] HARD_BOARD = new int[][]{
             {6,0,0,5,2,0,1,0,7},
@@ -41,14 +43,17 @@ public class BoardTests {
 
     };
 
-    public static GameBoard getDefaultBoard(){
-        return GameBoard.fromBoard(DEFAULT_BOARD);
+    public static void getDefaultBoard(Board b) {
+        getBoardFrom(DEFAULT_BOARD,b);
     }
-    public static GameBoard getHardBoard(){
-        return GameBoard.fromBoard(HARD_BOARD);
+    public static void getBoardFrom(int[][] template, Board b){
+        b.setBoardTo(GameBoard.fromBoard(template).getValuesCopy());
     }
-    public static GameBoard getMediumBoard(){
-        return GameBoard.fromBoard(MEDIUM_BOARD);
+    public static void getHardBoard(Board b){
+        getBoardFrom(HARD_BOARD,b);
+    }
+    public static void getMediumBoard(Board b){
+        getBoardFrom(MEDIUM_BOARD,b);
     }
 
 

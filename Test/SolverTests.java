@@ -20,7 +20,9 @@ public class SolverTests {
 
     public static void GuessAndCheckSolver(){
 
-        Board b = BoardTests.getDefaultBoard();
+
+        Board b = new Board();
+        BoardTests.getDefaultBoard(b);
         Solution s  = new Solution(b);
         TileSolution ts  = new TileSolution(new BoardCoord(1,1), (byte) 3);
         s.addDecisionLevel(b,ts);
@@ -33,7 +35,8 @@ public class SolverTests {
         b.setTile(ts);
         s.addDecisionLevel(b,ts);
         System.out.println(s);
-        GameBoard gb = BoardTests.getDefaultBoard();
+        GameBoard gb = GameBoard.generateEmpty();
+        BoardTests.getDefaultBoard(gb);
         assertTrue(gb.isValid());
 
     }

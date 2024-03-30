@@ -13,8 +13,10 @@ class PropagationPath {
     private ArrayList<TileSolution> path;
     private int decisionLevel;
 
+
     public PropagationPath(Tile[][] startingBoard, int decisionLevel, TileSolution initialDecision){
         this.startingBoard = startingBoard;
+
         this.decisionLevel = decisionLevel;
         this.path = new ArrayList<TileSolution>();
         this.initialDecision = initialDecision;
