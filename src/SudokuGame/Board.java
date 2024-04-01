@@ -40,6 +40,7 @@ public class Board {
         this.values = new Tile[9][9];
         initializeValuesWithArray(values);
     }
+
     public Board(){
         this(new byte[9][9]);
     }

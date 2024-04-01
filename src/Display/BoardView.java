@@ -14,9 +14,13 @@ import java.awt.event.KeyListener;
 public class BoardView extends JPanel {
 
     JFrame window;
-    Board b;
+    Board board;
 
     Solver s;
+
+    int currentDecisionLevelView;
+
+    Board solverBoardView;
     public static final int PADDING = 100;
     public static final int BOX_SIZE = 45;
     public static final Color backgroundColor = new Color(187, 187, 187);
@@ -29,8 +33,10 @@ public class BoardView extends JPanel {
 
     public BoardView(Board b){
         super();
-        this.b = b;
+        this.board = b;
+        currentDecisionLevelView = 0;
         this.setSize(new Dimension(BOX_SIZE * 9 + PADDING,BOX_SIZE * 9 + PADDING));
+
         initWindow();
 
 
@@ -85,7 +91,12 @@ public class BoardView extends JPanel {
 
         drawBackground(g);
         drawGridlines(g);
-        drawBoard(g);
+        if(s.isPaused()){
+
+        } else {
+            drawBoard(g, board);
+        }
+
         drawSolverInfo(g);
     }
 
@@ -125,7 +136,7 @@ public class BoardView extends JPanel {
         }
 
     }
-    private void drawBoard(Graphics g){
+    private void drawBoard(Graphics g, Board b){
         g.setColor(new Color(0,0,0));
 
 

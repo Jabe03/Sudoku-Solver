@@ -12,7 +12,6 @@ public class Solver{
     long delay;
     public static final int SLOW_DELAY = 200;
     volatile boolean paused;
-
     long seed;
     public static void main(String[] args){
         Board b = new Board();
@@ -50,7 +49,7 @@ public class Solver{
     public boolean solve(Board b, SolutionMethod method){
         boolean solved;
         if(this.seed ==  0){
-            seed = new Random().nextLong();
+            seed = -8332444702885254801L; //new Random().nextLong();
         }
         switch(method){
             case GUESS_AND_CHECK -> solved = solveByGuessAndCheck(b, seed, false, true);
@@ -123,7 +122,9 @@ public class Solver{
     public void setPaused(boolean paused){
         this.paused = paused;
     }
-
+    public boolean isPaused(){
+        return paused;
+    }
     public void togglePause(){
         setPaused(!paused);
     }
@@ -287,6 +288,10 @@ public class Solver{
             return null;
         }
         return s;
+    }
+
+    public Tile[][] getBoardFromDecisionLevel(int level){
+        return s.solution.get(level).getStartingBoard();
     }
 
 

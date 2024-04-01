@@ -43,7 +43,6 @@ public class UserInputTests {
                 ttgen n (timeTrialsSolver numBoards)
                 """;
         System.out.println(index);
-        label:
         while(true){
             String command = tsm.nextLine();
             String[] terms = command.split(" ");
@@ -131,7 +130,7 @@ public class UserInputTests {
                     }
                     case "sol" -> {
 
-                        boolean solved = false;
+                        boolean solved;
                         if (terms.length == 1 || terms.length > 3) {
                             break;
                         }
@@ -156,11 +155,9 @@ public class UserInputTests {
 
                     case "mb" -> {
                         BoardTests.getMediumBoard(b);
-                        break;
                     }
                     case "hb" -> {
                         BoardTests.getHardBoard(b);
-                        break;
                     }
                     case "db" -> {
                         BoardTests.getDefaultBoard(b);
