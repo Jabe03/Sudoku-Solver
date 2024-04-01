@@ -2,16 +2,18 @@ package Solver;
 
 import SudokuGame.Board;
 import SudokuGame.BoardCoord;
+import SudokuGame.BoardCoordType;
 import SudokuGame.Tile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class Solver{
     Solution s;
     long delay;
     public static final int SLOW_DELAY = 200;
+    volatile boolean paused;
+
+    long seed;
     public static void main(String[] args){
         Board b = new Board();
         System.out.println(b);
@@ -41,9 +43,15 @@ public class Solver{
         this.delay = SLOW_DELAY;
     }
 
+    public void setSeed(long seed){
+        this.seed = seed;
+    }
 
-    public boolean solve(Board b, SolutionMethod method, long seed){
+    public boolean solve(Board b, SolutionMethod method){
         boolean solved;
+        if(this.seed ==  0){
+            seed = new Random().nextLong();
+        }
         switch(method){
             case GUESS_AND_CHECK -> solved = solveByGuessAndCheck(b, seed, false, true);
             case GUESS_AND_CHECK_SMART_SELECTION -> solved = solveByGuessAndCheck(b, seed, true,  true);
@@ -61,12 +69,15 @@ public class Solver{
         return false;
     }
     public boolean solveByGuessAndCheck(Board b, long seed, boolean smartSelection,  boolean lookForContradictionTiles){
-        System.out.println("Solving via guess and check");
+        System.out.println("Solving via guess and check (seed=" + seed + ")");
         s = new Solution(b);
         Random r = new Random(seed);
         b.turnAllTileNotesOn();
         solveAllWithSingletonNotes(b);
         while(!b.isSolved()) {
+            if(paused){
+                continue;
+            }
             Tile t;
             if(smartSelection){
                 t = getATileWithLeastNotes(r,b);
@@ -80,13 +91,14 @@ public class Solver{
 
 
             byte guess = chooseRandomFromNotes(r, t);
-            if (guess == 0 || hasTileWithNoNotes(b)) {
+            if (guess == 0 || hasTileWithNoNotes(b) || !partitionsHaveEveryNumberPossible(b)) {
                 TileSolution ts = s.getLastDecision();
                 if(ts == null){
                    return revertBoardAndFail(b);
                 }
                 b.setBoardTo(s.revertHighestDecisionLevel());
                 b.getTile(ts.getBc()).toggleNote(ts.getVal());
+                //togglePause();
             } else {
                 if (b.tileIsValid(t.getCoordinates(), guess)) {
                     //System.out.println("Guessing " +  guess + " at " + t.getCoordinates());
@@ -100,12 +112,21 @@ public class Solver{
                     //System.out.println(b.getTile(t.getCoordinates()).getNotesList());
                 }
             }
-            solveAllWithSingletonNotes(b);
+
+
+            deducePropagations(b);
             delay();
         }
         return true;
     }
 
+    public void setPaused(boolean paused){
+        this.paused = paused;
+    }
+
+    public void togglePause(){
+        setPaused(!paused);
+    }
     public boolean hasTileWithNoNotes(Board b){
         for(int i = 0 ; i < 9; i++){
             for(int j = 0; j <  9; j++){
@@ -117,7 +138,67 @@ public class Solver{
         }
         return false;
     }
-    public void solveAllWithSingletonNotes(Board b){
+
+    public boolean partitionsHaveEveryNumberPossible(Board b){
+
+        for(int i = 0; i < 3; i++){
+            for( int j = 0; j < 3; j++){
+                BoardCoord bc = new BoardCoord(i,j, BoardCoordType.PartitionCoord);
+                Tile[] partition = b.getPartitionOf(bc);
+                Set<Integer> valsThatExist =  new HashSet<>();
+
+                for(Tile t: partition){
+                    if(t.hasValue()){
+                        valsThatExist.add((int) t.getValue());
+                    } else{
+                        valsThatExist.addAll(t.getNotesList());
+                    }
+                }
+                if(valsThatExist.size() != 9){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    public void deducePropagations(Board b){
+        while(solveAllWithSingletonNotes(b) || solveAllLastPossibleSquare(b));
+    }
+    public boolean solveAllLastPossibleSquare(Board b){
+        boolean changesMade = false;
+        for(int i = 0; i < 9; i++){
+            changesMade = changesMade ||
+                    solveLastPossibleInCollection(b, Arrays.asList(b.getColumnOf(new BoardCoord(0,i)))) ||
+                    solveLastPossibleInCollection(b, Arrays.asList(b.getRowOf(new BoardCoord(i,0)))) ||
+                    solveLastPossibleInCollection(b, Arrays.asList(b.getRowOf(new BoardCoord(i/3,i%3, BoardCoordType.PartitionCoord))));
+        }
+        return changesMade;
+    }
+    public boolean solveLastPossibleInCollection(Board b, Iterable<Tile> tiles){
+        boolean changesMade = false;
+        Map<Integer, Pair<Integer, Tile>> counts = new HashMap<>();
+        for(int i = 1; i <=9 ; i++){
+            counts.put(i, new Pair<Integer, Tile>(0, null));
+        }
+
+        for(Tile t: tiles){
+            if(!t.hasValue()){
+                for(Integer i: t.getNotesList()){
+                    counts.put(i, new Pair<>(counts.get(i).first + 1, t));
+                }
+            }
+        }
+        for(Map.Entry<Integer, Pair<Integer, Tile>> entry : counts.entrySet()){
+            if(entry.getValue().first == 1){
+                b.setTile(new TileSolution(entry.getValue().second.getCoordinates(), entry.getKey().byteValue()));
+                changesMade = true;
+            }
+        }
+        return changesMade;
+    }
+
+
+    public boolean solveAllWithSingletonNotes(Board b){
         boolean changesMade = false;
         for(int i  = 0; i < 9; i++){
             for(int j = 0; j < 9; j++){
@@ -132,9 +213,7 @@ public class Solver{
                 }
             }
         }
-        if(changesMade){
-            solveAllWithSingletonNotes(b);
-        }
+        return changesMade;
     }
     public void delay(){
         if(this.delay == 0){
@@ -211,4 +290,13 @@ public class Solver{
     }
 
 
+}
+
+class Pair<F,S>{
+    F first;
+    S second;
+    public Pair(F first, S second){
+        this.first =  first;
+        this.second = second;
+    }
 }

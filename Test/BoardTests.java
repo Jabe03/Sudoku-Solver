@@ -42,6 +42,17 @@ public class BoardTests {
             {5,9,0,3,0,8,0,0,0},
 
     };
+    public static final int[][] CLEAR_BOARD = new int[][]{
+            {0,0,0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0,0,0}
+    };
 
     public static void getDefaultBoard(Board b) {
         getBoardFrom(DEFAULT_BOARD,b);
@@ -54,6 +65,10 @@ public class BoardTests {
     }
     public static void getMediumBoard(Board b){
         getBoardFrom(MEDIUM_BOARD,b);
+    }
+
+    public static void getClearBoard(Board b){
+        getBoardFrom(CLEAR_BOARD,b);
     }
 
 

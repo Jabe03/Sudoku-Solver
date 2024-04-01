@@ -1,5 +1,6 @@
 package Display;
 
+import Solver.Solver;
 import SudokuGame.Board;
 import SudokuGame.BoardColor;
 import SudokuGame.BoardCoord;
@@ -7,17 +8,24 @@ import SudokuGame.Tile;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 public class BoardView extends JPanel {
 
     JFrame window;
     Board b;
+
+    Solver s;
     public static final int PADDING = 100;
     public static final int BOX_SIZE = 45;
     public static final Color backgroundColor = new Color(187, 187, 187);
     public static final Color notesColor = new Color(79, 79, 79);
     public static final Color majorGridlineColor = new Color(0, 0, 0);
     public static final Color minorGridlineColor = new Color(168, 168, 168);
+    public static final Font defaultFont = new Font("Ariel", Font.PLAIN, 10);
+    public static final Font valueFont = defaultFont.deriveFont(30.0F);
+    public static final Font notesFont = defaultFont.deriveFont(10.0F);
 
     public BoardView(Board b){
         super();
@@ -34,6 +42,32 @@ public class BoardView extends JPanel {
         window.setContentPane(this);
         window.setSize(new Dimension(600, 600));
         window.setAlwaysOnTop(true);
+        window.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                switch(e.getKeyCode()){
+                    case KeyEvent.VK_SPACE -> {
+                        if(s != null){
+                            s.togglePause();
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+        });
+    }
+
+    public void setSolver(Solver s){
+        this.s = s;
     }
 
 
@@ -52,6 +86,17 @@ public class BoardView extends JPanel {
         drawBackground(g);
         drawGridlines(g);
         drawBoard(g);
+        drawSolverInfo(g);
+    }
+
+    private void drawSolverInfo(Graphics g){
+        if(s == null){
+            return;
+        }
+        g.setFont(defaultFont);
+        g.drawString("Decision level: " + s.getSolution().getCurrentDecisionLevel(),PADDING, PADDING);
+
+        g.drawString("SPACE = pause solver",  PADDING + 9*BOX_SIZE, PADDING + 9*BOX_SIZE);
     }
 
     private void drawBackground(Graphics g){
@@ -82,8 +127,7 @@ public class BoardView extends JPanel {
     }
     private void drawBoard(Graphics g){
         g.setColor(new Color(0,0,0));
-        Font valueFont = g.getFont().deriveFont(30.0F);
-        Font notesFont = g.getFont().deriveFont(10.0F);
+
 
 
         for(int i = 0; i < 9; i++){

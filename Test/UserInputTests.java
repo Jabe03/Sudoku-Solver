@@ -9,7 +9,7 @@ import SudokuGame.Tile;
 import java.util.*;
 
 public class UserInputTests {
-
+    //-8332444702885254801 giving huge problems review this
     public static void main(String[] args){
 //        Solver s = new Solver();
 //        Tile t = new Tile(new BoardCoord(0,0), (byte) 1);
@@ -28,18 +28,19 @@ public class UserInputTests {
 
         BoardView view = new BoardView(b);
         startUpdatingWindow(view);
+        Solver s = new Solver();
         String index = """
                 s i j v (set row col value), g i j (get row col)\s
                 q (quit) pb (print board), c i j (clear row col)
                 gn i j (getnotes row col), tn i j v (setnote row col val)
-                cv i j (checkValidity row col), cb (checkBoardValidity)
+                cv i j (checkValidity row col), chb (checkBoardValidity)
                 gb ?s (generateBoard seed(optional) gempt (get empty tiles)
                 gan  (generate all possible notes)
-                db (defaultBoard) mb hb
-                sol m (solve method)
+                db (defaultBoard) mb hb clb
+                sol m (solve method) ss (set solver seed)
                 methods: [ gc (guesAndCheck) gcs (smart guess and check(picks tile with least notes to guess about))]
                 tw (toggle window)
-                
+                ttgen n (timeTrialsSolver numBoards)
                 """;
         System.out.println(index);
         label:
@@ -107,7 +108,7 @@ public class UserInputTests {
                         BoardCoord bc = new BoardCoord(Integer.parseInt(terms[1]) - 1, Integer.parseInt(terms[2]) - 1);
                         System.out.println(b.tileIsValid(bc));
                     }
-                    case "cb" -> {
+                    case "chb" -> {
                         System.out.println(b.isValid());
                     }
                     case "gb" -> {
@@ -122,8 +123,14 @@ public class UserInputTests {
                     case "gempt" -> {
                         System.out.println(Arrays.toString(b.getEmptyTiles()));
                     }
+                    case "ss" ->{
+                        if (terms.length < 2) {
+                            break;
+                        }
+                        s.setSeed(Long.parseLong(terms[1]));
+                    }
                     case "sol" -> {
-                        Solver s = new Solver();
+
                         boolean solved = false;
                         if (terms.length == 1 || terms.length > 3) {
                             break;
@@ -137,9 +144,9 @@ public class UserInputTests {
                             case "gcs" -> sm = SolutionMethod.GUESS_AND_CHECK_SMART_SELECTION;
                             default -> sm = SolutionMethod.GUESS_AND_CHECK;
                         }
-
+                        view.setSolver(s);
                         long start = System.currentTimeMillis();
-                        solved = s.solve(b, sm, 1234);
+                        solved = s.solve(b, sm);
                         long elapsed = System.currentTimeMillis() - start;
                         System.out.printf("%s with solution: %s (%dms)%n",
                                 (solved ? "Solved successfully" : "Solution failed"), s.getSolution(), elapsed);
@@ -158,9 +165,18 @@ public class UserInputTests {
                     case "db" -> {
                         BoardTests.getDefaultBoard(b);
                     }
+                    case "cb" -> {
+                        BoardTests.getClearBoard(b);
+                    }
                     case "tw" -> {
                         view.toggleVisible();
 
+                    }
+                    case "ttgen" -> {
+                        if (terms.length < 2) {
+                            break;
+                        }
+                        runTimeTrialGeneratingBoards(Integer.parseInt(terms[1]), b, s);
                     }
                 }
             } catch (NumberFormatException e){
@@ -169,6 +185,29 @@ public class UserInputTests {
         }
 
 
+    }
+
+    public static void runTimeTrialGeneratingBoards(int numBoards, Board b, Solver s){
+        Random seedGenerator = new Random();
+        long slowestTime = 0;
+        long slowestSeed = 0;
+        long cumElapsed = 0;
+        for(int i  = 0; i < numBoards; i++){
+            long seed = seedGenerator.nextLong();
+            s.setSeed(seed);
+            BoardTests.getClearBoard(b);
+            long now = System.currentTimeMillis();
+            System.out.println("Solving board#" + i);
+            s.solve(b,SolutionMethod.GUESS_AND_CHECK_SMART_SELECTION);
+            long elapsed = System.currentTimeMillis() - now;
+            if(elapsed > slowestTime){
+                slowestTime = elapsed;
+                slowestSeed = seed;
+            }
+            cumElapsed += elapsed;
+        }
+
+        System.out.printf("Longest generation time: %dms, seed: %d.(Avg. %fms)%n", slowestTime, slowestSeed, cumElapsed/(double) numBoards);
     }
     public static void startUpdatingWindow(BoardView b) {
         Thread t = new Thread(() -> {
