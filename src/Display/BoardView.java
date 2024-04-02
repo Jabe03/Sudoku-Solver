@@ -5,7 +5,8 @@ import SudokuGame.Board;
 import SudokuGame.BoardColor;
 import SudokuGame.BoardCoord;
 import SudokuGame.Tile;
-
+import Solver.PropagationPath;
+import Solver.TileSolution;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -19,8 +20,6 @@ public class BoardView extends JPanel {
     Solver s;
 
     int currentDecisionLevelView;
-
-    Board solverBoardView;
     public static final int PADDING = 100;
     public static final int BOX_SIZE = 45;
     public static final Color backgroundColor = new Color(187, 187, 187);
@@ -60,6 +59,30 @@ public class BoardView extends JPanel {
                     case KeyEvent.VK_SPACE -> {
                         if(s != null){
                             s.togglePause();
+                            if(currentDecisionLevelView > s.getSolution().getCurrentDecisionLevel()-1){
+                                currentDecisionLevelView = s.getSolution().getCurrentDecisionLevel() - 1;
+                            }
+                        }
+
+                    }
+                    case KeyEvent.VK_LEFT -> {
+                        if(s != null && s.isPaused() && currentDecisionLevelView > 0){
+                            currentDecisionLevelView--;
+                        }
+                    }
+                    case KeyEvent.VK_RIGHT -> {
+                        if(s != null && s.isPaused() && currentDecisionLevelView < s.getSolution().solution.size()-1){
+                            currentDecisionLevelView++;
+                        }
+                    }
+                    case KeyEvent.VK_UP -> {
+                        if(s != null && s.isPaused()){
+                            currentDecisionLevelView = s.getSolution().getCurrentDecisionLevel();
+                        }
+                    }
+                    case KeyEvent.VK_DOWN -> {
+                        if(s != null && s.isPaused()){
+                            currentDecisionLevelView = 0;
                         }
                     }
                 }
@@ -91,7 +114,11 @@ public class BoardView extends JPanel {
 
         drawBackground(g);
         drawGridlines(g);
-        if(s.isPaused()){
+        if(s != null && s.isPaused()){
+            Board b = s.getSolution().getBoardFromDecisionLevel(currentDecisionLevelView);
+            if(b != null){
+                drawBoard(g,b , getColoringAtDL(b,currentDecisionLevelView));
+            }
 
         } else {
             drawBoard(g, board);
@@ -101,13 +128,22 @@ public class BoardView extends JPanel {
     }
 
     private void drawSolverInfo(Graphics g){
-        if(s == null){
+        if(s == null || s.getSolution() == null){
             return;
         }
         g.setFont(defaultFont);
-        g.drawString("Decision level: " + s.getSolution().getCurrentDecisionLevel(),PADDING, PADDING);
+        g.drawString("Decision level: " + (s.isPaused() ? currentDecisionLevelView : s.getSolution().getCurrentDecisionLevel()),PADDING, PADDING);
 
         g.drawString("SPACE = pause solver",  PADDING + 9*BOX_SIZE, PADDING + 9*BOX_SIZE);
+
+        int displayDecLevel = 0;
+        if(s.isPaused()){
+           displayDecLevel = currentDecisionLevelView;
+        } else {
+            displayDecLevel = s.getSolution().solution.size()-1;
+        }
+        wrapString(g, s.getSolution().solution.get(displayDecLevel).toString(), PADDING, PADDING + 9*BOX_SIZE, PADDING + 9*BOX_SIZE + g.getFontMetrics().getHeight());
+        //g.drawString(wrapString(g, s.getSolution().solution.get(displayDecLevel).toString(), getWidth()), PADDING, PADDING + 9*BOX_SIZE + g.getFontMetrics().getHeight());
     }
 
     private void drawBackground(Graphics g){
@@ -137,26 +173,76 @@ public class BoardView extends JPanel {
 
     }
     private void drawBoard(Graphics g, Board b){
-        g.setColor(new Color(0,0,0));
+
+        drawBoard(g,b, getDefaultColoring(b));
+
+    }
+
+    private Color[][] getDefaultColoring(Board b){
+        Color[][] colors = new Color[9][9];
+
+
+        for(int i = 0; i < 9; i++){
+            for(int j = 0; j < 9; j++){
+                BoardCoord bc = new BoardCoord(i,j);
+                BoardCoord partition = bc.getPartitionCoords();
+                Tile t = b.getTile(bc);
+                int partitionNum = partition.row*3 + partition.col;
+                if(t.hasValue()){
+                    if(t.isIntrinsic()){
+                        colors[i][j] =BoardColor.getRGBColor(BoardColor.INDIGO); //BoardColor.getRGBColor(BoardColor.getDefaultOrder()[partitionNum]);
+                    } else {
+                        colors[i][j] =BoardColor.getRGBColor(BoardColor.DARK_GRAY);
+                    }
+                } else {
+                    colors[i][j] = notesColor;
+                }
+            }
+        }
+        return colors;
+    }
+
+    public Color[][] getColoringAtDL(Board b, int decisionLevel){
+        Color[][] colors = getDefaultColoring(b);
+        PropagationPath p = s.getSolution().solution.get(decisionLevel);
+
+        if(decisionLevel != 0) {
+            TileSolution ts = p.getInitialDecision();
+            colors[ts.getBc().row][ts.getBc().col] = BoardColor.getRGBColor(BoardColor.CYAN);
+        }
+        for(TileSolution t: p.getPath()){
+            if(!b.getTile(t.getBc()).hasValue()){
+                System.out.println("colored tile does not have a value, something is wrong");
+            }
+            //System.out.println("Coloring a tile");
+            colors[t.getBc().row][t.getBc().col] = BoardColor.getRGBColor(BoardColor.ORANGE);
+        }
+        return colors;
+    }
+
+    private void drawBoard(Graphics g, Board b, Color[][] colors){
+        if (!b.hasBoard()){
+            return;
+        }
+        //g.setColor(new Color(0,0,0));
 
 
 
         for(int i = 0; i < 9; i++){
             for(int j= 0 ; j < 9 ; j++){
                 BoardCoord bc = new BoardCoord(i,j);
-                BoardCoord partition = bc.getPartitionCoords();
-                int partitionNum = partition.row*3 + partition.col;
+                //BoardCoord partition = bc.getPartitionCoords();
                 Tile t = b.getTile(bc);
                 if(t.hasValue()){
                     g.setFont(valueFont);
                     String value = Byte.toString(t.getValue());
                     int centeringY = -(BOX_SIZE - g.getFontMetrics().getAscent())/2 - 5;
                     int centeringX = (BOX_SIZE - g.getFontMetrics().stringWidth(value) )/2;
-                    g.setColor(BoardColor.getRGBColor(BoardColor.getDefaultOrder()[partitionNum]));
+                    g.setColor(colors[i][j]);
                     g.drawString(value, PADDING + j*BOX_SIZE + centeringX, PADDING + (i+1)*BOX_SIZE + centeringY);
                 } else {
                     g.setFont(notesFont);
-                    g.setColor(notesColor);
+                    g.setColor(colors[i][j]);
                     int noteHeight = g.getFontMetrics().getHeight();
                     //g.drawString("NOTES", PADDING + j*BOX_SIZE , PADDING + i*BOX_SIZE);
                     boolean[] notes = t.getNotes();
@@ -170,6 +256,28 @@ public class BoardView extends JPanel {
                         }
                     }
                 }
+
+            }
+        }
+    }
+
+
+    public void wrapString(Graphics g,String original, int x1, int x2, int y){
+        int stringWidth = g.getFontMetrics().stringWidth(original);
+        int width = x2-x1;
+        int numLines = stringWidth / width + (stringWidth% width == 0 ? 0 : 1);
+        int charsPerLine;
+        if(numLines == 0){
+            charsPerLine = original.length();
+        } else {
+            charsPerLine = original.length() / numLines;
+        }
+        for(int i = 0; i < numLines; i++){
+            if(i == numLines-1){
+                g.drawString(original.substring(i*charsPerLine), x1, y + i*g.getFontMetrics().getHeight());
+
+            } else {
+                g.drawString(original.substring(i*charsPerLine, (i + 1) * charsPerLine), x1, y + i*g.getFontMetrics().getHeight());
 
             }
         }

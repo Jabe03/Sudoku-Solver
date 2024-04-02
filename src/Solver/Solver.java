@@ -8,7 +8,7 @@ import SudokuGame.Tile;
 import java.util.*;
 
 public class Solver{
-    Solution s;
+    public Solution s;
     long delay;
     public static final int SLOW_DELAY = 200;
     volatile boolean paused;
@@ -72,9 +72,10 @@ public class Solver{
         s = new Solution(b);
         Random r = new Random(seed);
         b.turnAllTileNotesOn();
-        solveAllWithSingletonNotes(b);
+        deducePropagations(b);
         while(!b.isSolved()) {
             if(paused){
+                delay(100);
                 continue;
             }
             Tile t;
@@ -101,7 +102,7 @@ public class Solver{
             } else {
                 if (b.tileIsValid(t.getCoordinates(), guess)) {
                     //System.out.println("Guessing " +  guess + " at " + t.getCoordinates());
-                    s.addDecisionLevel(b, new TileSolution(t.getCoordinates(), guess));
+                    s.addDecisionLevel(b, new TileSolution(t.getCoordinates(), guess, "guess"));
 
                 } else {
                     //System.out.print(t.getCoordinates() +  " " + guess + "was invalid, marking wrong " +
@@ -141,7 +142,6 @@ public class Solver{
     }
 
     public boolean partitionsHaveEveryNumberPossible(Board b){
-
         for(int i = 0; i < 3; i++){
             for( int j = 0; j < 3; j++){
                 BoardCoord bc = new BoardCoord(i,j, BoardCoordType.PartitionCoord);
@@ -163,21 +163,25 @@ public class Solver{
         return true;
     }
     public void deducePropagations(Board b){
-        while(solveAllWithSingletonNotes(b) || solveAllLastPossibleSquare(b));
+        while(true){
+            if(!(solveAllWithSingletonNotes(b) || solveAllLastPossibleSquare(b))){
+                break;
+            }
+        }
     }
     public boolean solveAllLastPossibleSquare(Board b){
         boolean changesMade = false;
         for(int i = 0; i < 9; i++){
             changesMade = changesMade ||
-                    solveLastPossibleInCollection(b, Arrays.asList(b.getColumnOf(new BoardCoord(0,i)))) ||
-                    solveLastPossibleInCollection(b, Arrays.asList(b.getRowOf(new BoardCoord(i,0)))) ||
-                    solveLastPossibleInCollection(b, Arrays.asList(b.getRowOf(new BoardCoord(i/3,i%3, BoardCoordType.PartitionCoord))));
+                    solveLastPossibleInCollection(b, Arrays.asList(b.getColumnOf(new BoardCoord(0,i))), "column") ||
+                    solveLastPossibleInCollection(b, Arrays.asList(b.getRowOf(new BoardCoord(i,0))), "row") ||
+                    solveLastPossibleInCollection(b, Arrays.asList(b.getPartitionOf(new BoardCoord(i/3,i%3, BoardCoordType.PartitionCoord))), "partition");
         }
         return changesMade;
     }
-    public boolean solveLastPossibleInCollection(Board b, Iterable<Tile> tiles){
+    public boolean solveLastPossibleInCollection(Board b, Iterable<Tile> tiles, String collectionType){
         boolean changesMade = false;
-        Map<Integer, Pair<Integer, Tile>> counts = new HashMap<>();
+        Map<Integer, Pair<Integer, Tile>> counts = new TreeMap<Integer, Pair<Integer, Tile>>();
         for(int i = 1; i <=9 ; i++){
             counts.put(i, new Pair<Integer, Tile>(0, null));
         }
@@ -191,11 +195,38 @@ public class Solver{
         }
         for(Map.Entry<Integer, Pair<Integer, Tile>> entry : counts.entrySet()){
             if(entry.getValue().first == 1){
-                b.setTile(new TileSolution(entry.getValue().second.getCoordinates(), entry.getKey().byteValue()));
+                //System.out.println(entry + " by " + collectionType);
+                TileSolution ts = new TileSolution(entry.getValue().second.getCoordinates(), entry.getKey().byteValue(), "last possible in " + collectionType +" :" + s.solution.get(s.getCurrentDecisionLevel()).getPath().size());
+                if(hasDuplicateOf(tiles, entry.getKey())){
+                    System.out.println(entry);
+                    //System.out.println(b.getTile(new BoardCoord(ts.getBc())).getNotesList());
+                    //System.out.println(b.getTile(new BoardCoord(ts.getBc().row-1, ts.getBc().col)).getNotesList());
+                    //System.out.println(b.getTile(new BoardCoord(ts.getBc().row-1, ts.getBc().col + 1)).getNotesList());
+                    System.out.println(tiles);
+                    System.out.println(counts.entrySet());
+                    setPaused(true);
+                }
+                applyPropagationSolution(b,ts);
                 changesMade = true;
             }
         }
         return changesMade;
+    }
+    private boolean hasDuplicateOf(Iterable<Tile> tiles, Integer num){
+        int count = 0;
+
+        for(Tile t: tiles){
+            if(!t.hasValue()){
+                if(t.getNotesList().contains(num)){
+                    count++;
+                }
+            }
+        }
+        return count > 1 || count == 0;
+    }
+    private void applyPropagationSolution(Board b, TileSolution ts){
+        s.addToLastDecisionLevel(ts);
+        b.setTile(ts);
     }
 
 
@@ -206,9 +237,8 @@ public class Solver{
                 BoardCoord bc = new BoardCoord(i,j);
                 List<Integer> notes = b.getTile(bc).getNotesList();
                 if(notes.size() == 1){
-                    TileSolution ts = new TileSolution(bc, notes.get(0).byteValue());
-                    s.addToLastDecisionLevel(ts);
-                    b.setTile(ts);
+                    TileSolution ts = new TileSolution(bc, notes.get(0).byteValue(), "singleton note");
+                    applyPropagationSolution(b,ts);
                     changesMade = true;
                     delay(delay/2);
                 }
@@ -290,9 +320,7 @@ public class Solver{
         return s;
     }
 
-    public Tile[][] getBoardFromDecisionLevel(int level){
-        return s.solution.get(level).getStartingBoard();
-    }
+
 
 
 }
@@ -303,5 +331,9 @@ class Pair<F,S>{
     public Pair(F first, S second){
         this.first =  first;
         this.second = second;
+    }
+
+    public String toString(){
+        return String.format("(%s,%s)", first, second);
     }
 }

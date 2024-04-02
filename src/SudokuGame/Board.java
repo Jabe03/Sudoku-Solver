@@ -44,6 +44,9 @@ public class Board {
     public Board(){
         this(new byte[9][9]);
     }
+    public Board(Tile[][] tiles){
+        this.values = tiles;
+    }
     private void initializeValuesWithArray(byte[][] initials){
         for(int i = 0; i < values.length; i++){
             for(int j = 0; j < values[i].length; j++){
@@ -55,6 +58,10 @@ public class Board {
     public void setTile(BoardCoord bc, int newVal){
             values[bc.row][bc.col].setValue(b(newVal));
             updateNotesRelevantTo(bc);
+    }
+
+    public boolean hasBoard(){
+        return this.values != null;
     }
 
     public void setTile(TileSolution s){

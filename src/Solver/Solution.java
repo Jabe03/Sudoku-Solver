@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class Solution {
 
-    ArrayList<PropagationPath> solution;
+    public ArrayList<PropagationPath> solution;
 
     public Solution(Board b){
         solution = new ArrayList<PropagationPath>();
@@ -51,7 +51,7 @@ public class Solution {
         if(solution.size() == 1){
             return null;
         }
-        return solution.get(1).initialDecision;
+        return solution.get(1).getInitialDecision();
 
     }
 
@@ -59,14 +59,34 @@ public class Solution {
         if(solution.size() == 1){
             return null;
         }
-        return solution.get(solution.size()-1).initialDecision;
+        return solution.get(solution.size()-1).getInitialDecision();
     }
     public int getCurrentDecisionLevel(){
-        return solution.size();
+        return solution.size()-1;
     }
     public String toString(){
         return solution.toString();
     }
+
+    public Board getBoardFromDecisionLevel(int level){
+        if(level < 0 || level >= solution.size()){
+            return null;
+        }
+        PropagationPath currentDecision = solution.get(level);
+        Board board = new Board(currentDecision.getStartingBoard());
+        if(level != 0) {
+            board.setTile(currentDecision.getInitialDecision());
+        }
+        for(TileSolution ts: currentDecision.getPath()){
+            board.setTile(ts);
+        }
+
+
+
+        return board;
+    }
+
+
 
 
 }

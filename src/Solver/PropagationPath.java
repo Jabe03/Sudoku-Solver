@@ -4,12 +4,14 @@ import SudokuGame.BoardCoord;
 import SudokuGame.Tile;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.ConcurrentModificationException;
 
-class PropagationPath {
+public class PropagationPath {
 
     private final Tile[][] startingBoard;
 
-    TileSolution initialDecision;
+    private TileSolution initialDecision;
     private ArrayList<TileSolution> path;
     private int decisionLevel;
 
@@ -25,6 +27,13 @@ class PropagationPath {
         this(startingBoard, decisionLevel, null);
     }
 
+    public ArrayList<TileSolution> getPath(){
+        return path;
+    }
+
+    public TileSolution getInitialDecision() {
+        return initialDecision;
+    }
 
     public Tile[][] getStartingBoard(){
         return startingBoard;
@@ -44,7 +53,12 @@ class PropagationPath {
     }
 
     public String toString(){
-        return String.format("<DL:%d, inital = [%s], path = %s>", decisionLevel, initialDecision, path);
+
+        try {
+            return String.format("<DL:%d, inital = [%s], path = %s>", decisionLevel, initialDecision, path);
+        } catch (ConcurrentModificationException e){
+            return "";
+        }
     }
 
 

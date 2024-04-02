@@ -85,6 +85,8 @@ public class Tile {
     public boolean isIntrinsic(){
         return isIntrinsic;
     }
+
+
     @Override
     public boolean equals(Object o){
         if(o instanceof Tile t){
@@ -94,6 +96,10 @@ public class Tile {
 
     @Override
     public String toString(){
-        return String.format("Tile[row=%d,col=%d,val=%d]", bc.row, bc.col, value);
+        if(this.hasValue()){
+            return "~"; //String.format("Tile[row=%d,col=%d,val=%d]", bc.row, bc.col, value);
+        }
+        return String.format("Tile[row=%d,col=%d,notes=%s]", bc.row, bc.col, getNotesList());
+
     }
 }

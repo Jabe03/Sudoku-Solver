@@ -8,8 +8,10 @@ import org.junit.Test;
 import Solver.Solution;
 import Solver.TileSolution;
 
+import java.util.Arrays;
 import java.util.Random;
 
+import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 
 public class SolverTests {
@@ -38,6 +40,23 @@ public class SolverTests {
         GameBoard gb = GameBoard.generateEmpty();
         BoardTests.getDefaultBoard(gb);
         assertTrue(gb.isValid());
+
+    }
+
+    @Test
+    public void solveLastPossibleInCollectionTest(){
+        Solver s = new Solver();
+        Board b = new Board();
+        s.s = new Solution(b);
+        BoardCoord bc = new BoardCoord(0,0);
+        b.getTile(bc).toggleNote((byte)1);
+        assertTrue(s.solveLastPossibleInCollection(b, Arrays.asList(b.getColumnOf(bc)), "column"));
+
+        bc = new BoardCoord(3,1);
+        BoardCoord bc1 = new BoardCoord(3, 2);
+        b.getTile(bc).toggleNote((byte)1);
+        b.getTile(bc1).toggleNote((byte)1);
+        assertFalse(s.solveLastPossibleInCollection(b, Arrays.asList(b.getRowOf(bc)), "row"));
 
     }
 
