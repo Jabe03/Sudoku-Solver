@@ -129,8 +129,6 @@ public class UserInputTests {
                         s.setSeed(Long.parseLong(terms[1]));
                     }
                     case "sol" -> {
-
-                        boolean solved;
                         if (terms.length == 1 || terms.length > 3) {
                             break;
                         }
@@ -144,11 +142,13 @@ public class UserInputTests {
                             default -> sm = SolutionMethod.GUESS_AND_CHECK;
                         }
                         view.setSolver(s);
+
                         long start = System.currentTimeMillis();
-                        solved = s.solve(b, sm);
+                        boolean solved = s.solve(b, sm);
                         long elapsed = System.currentTimeMillis() - start;
                         System.out.printf("%s with solution: %s (%dms)%n",
                                 (solved ? "Solved successfully" : "Solution failed"), s.getSolution(), elapsed);
+
 
                     }
 

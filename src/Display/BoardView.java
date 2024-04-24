@@ -132,7 +132,8 @@ public class BoardView extends JPanel {
             return;
         }
         g.setFont(defaultFont);
-        g.drawString("Decision level: " + (s.isPaused() ? currentDecisionLevelView : s.getSolution().getCurrentDecisionLevel()),PADDING, PADDING);
+        g.setColor(BoardColor.getRGBColor(BoardColor.DARK_GRAY));
+        g.drawString("Decision level: " + (s.isPaused() ? currentDecisionLevelView : s.getSolution().getCurrentDecisionLevel()) + "numIterations="+ s.iterNum,PADDING, PADDING);
 
         g.drawString("SPACE = pause solver",  PADDING + 9*BOX_SIZE, PADDING + 9*BOX_SIZE);
 

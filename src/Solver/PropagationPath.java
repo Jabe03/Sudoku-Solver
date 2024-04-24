@@ -10,7 +10,6 @@ import java.util.ConcurrentModificationException;
 public class PropagationPath {
 
     private final Tile[][] startingBoard;
-
     private TileSolution initialDecision;
     private ArrayList<TileSolution> path;
     private int decisionLevel;

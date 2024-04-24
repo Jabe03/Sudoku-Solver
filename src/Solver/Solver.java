@@ -13,7 +13,9 @@ public class Solver{
     public static final int SLOW_DELAY = 200;
     volatile boolean paused;
     long seed;
+    public volatile int iterNum;
     public static void main(String[] args){
+        /*
         Board b = new Board();
         System.out.println(b);
         b.HORIZONTAL_SPACING = 3;
@@ -32,7 +34,11 @@ public class Solver{
             System.out.println(vals);
 
         }
-
+        */
+        boolean[] myVals = new boolean[9];
+        do{
+            System.out.println(Arrays.toString(myVals));
+        } while(incrementPowerSetCounter(myVals) != null);
     }
 
     public void setDelay(long millis){
@@ -52,8 +58,8 @@ public class Solver{
             seed = -8332444702885254801L; //new Random().nextLong();
         }
         switch(method){
-            case GUESS_AND_CHECK -> solved = solveByGuessAndCheck(b, seed, false, true);
-            case GUESS_AND_CHECK_SMART_SELECTION -> solved = solveByGuessAndCheck(b, seed, true,  true);
+            case GUESS_AND_CHECK -> solved = solveByGuessAndCheck(b, seed, false);
+            case GUESS_AND_CHECK_SMART_SELECTION -> solved = solveByGuessAndCheck(b, seed, true);
             default -> {
                 System.out.println("Desired method not supported");
                 return false;
@@ -67,17 +73,74 @@ public class Solver{
         b.setBoardTo(s.getInitialBoard());
         return false;
     }
-    public boolean solveByGuessAndCheck(Board b, long seed, boolean smartSelection,  boolean lookForContradictionTiles){
-        System.out.println("Solving via guess and check (seed=" + seed + ")");
+    /*
+    public boolean solveByNSquaresNPossibilities(Board b, long seed){
+        System.out.println("Solving via n squares n possibilities (seed=" + seed + ")");
+        b.turnAllTileNotesOn();
         s = new Solution(b);
         Random r = new Random(seed);
+
+        while(!b.isSolved()){
+            Set<Tile[]> collections = getAllCollectionsOfTiles(b);
+            for(Tile[] collection: collections){
+
+            }
+        }
+        return true;
+    }
+    private Iterable<Tile[]> powerSetOf(Tile[] tiles){
+        return null;
+
+    }
+
+    public boolean solveByGuessAndCheckWithNSNP(Board b, long seed, boolean smartSelection,  boolean lookForContradictionTiles) {
+        return false;
+
+    }
+    */
+
+
+    public static boolean[] incrementPowerSetCounter(boolean[] current){
+        int counter = 0;
+        do{
+            if(counter == current.length){
+                return null;
+            }
+            current[counter] = !current[counter];
+            counter++;
+        } while (current[counter-1] == false);
+
+        return current;
+    }
+    /*
+    private Set<Tile[]> getAllCollectionsOfTiles(Board b){
+        Set<Tile[]> collections = new HashSet<>();
+        for(int i = 0; i < 9; i ++){
+            collections.add(b.getColumnOf(new BoardCoord(0,i)));
+            collections.add(b.getRowOf(new BoardCoord(i,0)));
+            collections.add(b.getPartitionOf(new BoardCoord(i/3,i%3, BoardCoordType.PartitionCoord)));
+
+        }
+
+        return collections;
+    }
+     */
+    public boolean solveByGuessAndCheck(Board b, long seed, boolean smartSelection){
+        System.out.println("Solving via guess and check (seed=" + seed + ")");
+        iterNum = 0;
         b.turnAllTileNotesOn();
+        s = new Solution(b);
+        Random r = new Random(seed);
+
         deducePropagations(b);
+
         while(!b.isSolved()) {
+
             if(paused){
                 delay(100);
                 continue;
             }
+            iterNum = iterNum  +1;
             Tile t;
             if(smartSelection){
                 t = getATileWithLeastNotes(r,b);
@@ -88,8 +151,6 @@ public class Solver{
             if (t == null) {
                 return revertBoardAndFail(b);
             }
-
-
             byte guess = chooseRandomFromNotes(r, t);
             if (guess == 0 || hasTileWithNoNotes(b) || !partitionsHaveEveryNumberPossible(b)) {
                 TileSolution ts = s.getLastDecision();
@@ -103,6 +164,7 @@ public class Solver{
                 if (b.tileIsValid(t.getCoordinates(), guess)) {
                     //System.out.println("Guessing " +  guess + " at " + t.getCoordinates());
                     s.addDecisionLevel(b, new TileSolution(t.getCoordinates(), guess, "guess"));
+                    //setPaused(true);
 
                 } else {
                     //System.out.print(t.getCoordinates() +  " " + guess + "was invalid, marking wrong " +
@@ -198,13 +260,13 @@ public class Solver{
                 //System.out.println(entry + " by " + collectionType);
                 TileSolution ts = new TileSolution(entry.getValue().second.getCoordinates(), entry.getKey().byteValue(), "last possible in " + collectionType +" :" + s.solution.get(s.getCurrentDecisionLevel()).getPath().size());
                 if(hasDuplicateOf(tiles, entry.getKey())){
-                    System.out.println(entry);
+                    //System.out.println(entry);
                     //System.out.println(b.getTile(new BoardCoord(ts.getBc())).getNotesList());
                     //System.out.println(b.getTile(new BoardCoord(ts.getBc().row-1, ts.getBc().col)).getNotesList());
                     //System.out.println(b.getTile(new BoardCoord(ts.getBc().row-1, ts.getBc().col + 1)).getNotesList());
-                    System.out.println(tiles);
-                    System.out.println(counts.entrySet());
-                    setPaused(true);
+                    //System.out.println(tiles);
+                    //System.out.println(counts.entrySet());
+                    //setPaused(true);
                 }
                 applyPropagationSolution(b,ts);
                 changesMade = true;
